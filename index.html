@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Молодежка МАИ — Без сессии!</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a0533;min-height:100vh;overflow:hidden;font-family:'Press Start 2P',monospace}
+button,input,select{touch-action:manipulation}
+
+/* ══ ФОРМА ══ */
+#formPage{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#1a0533 0%,#3d1054 50%,#1a0533 100%);
+  z-index:50;
+}
+.stars{position:fixed;inset:0;pointer-events:none}
+.star{position:absolute;width:4px;height:4px;background:#fff}
+
+.card{
+  background:#fff;border:4px solid #ff6b35;
+  padding:clamp(24px,3.2vw,46px) clamp(22px,3vw,42px);width:min(720px,94vw);
+  box-shadow:6px 6px 0 #ff6b35,12px 12px 0 rgba(0,0,0,.4);
+  position:relative;z-index:10;max-height:95vh;overflow-y:auto;
+}
+.badge{display:inline-block;font-size:clamp(8px,0.8vw,12px);color:#fff;background:#ff6b35;padding:4px 10px;letter-spacing:2px;margin-bottom:10px}
+h1.title{font-size:clamp(18px,2vw,30px);color:#1a0533;line-height:1.7;margin-bottom:6px}
+h1.title span{color:#ff6b35}
+.divider{height:4px;background:repeating-linear-gradient(90deg,#ff6b35 0,#ff6b35 8px,transparent 8px,transparent 16px);margin:14px 0}
+.subtitle{font-size:clamp(8px,0.8vw,12px);color:#888;line-height:2}
+
+.field{margin-bottom:16px}
+.field label{font-size:clamp(9px,0.8vw,12px);color:#1a0533;display:block;margin-bottom:7px}
+.field input,.field select{
+  width:100%;padding:11px 12px;border:3px solid #1a0533;
+  font-family:'Press Start 2P',monospace;font-size:clamp(9px,0.85vw,13px);
+  background:#fff8f0;outline:none;-webkit-appearance:none;
+}
+.field input:focus,.field select:focus{border-color:#ff6b35}
+
+/* Согласие */
+.consent-wrap{margin-bottom:20px}
+.consent-legal{
+  background:#f9f4ff;border:2px solid #ccc;
+  padding:12px 14px;font-size:clamp(8px,0.65vw,10px);color:#444;line-height:2;
+  max-height:110px;overflow-y:auto;margin-bottom:10px;
+  font-family:Arial,sans-serif;
+}
+.consent-check-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;background:#fff0e8;border:2px solid #ff6b35;cursor:pointer;
+}
+.consent-check-row input[type=checkbox]{width:22px;height:22px;flex-shrink:0;accent-color:#ff6b35;cursor:pointer}
+.consent-check-row span{font-size:clamp(9px,0.8vw,12px);color:#1a0533;line-height:1.8}
+
+.btn-go{
+  width:100%;padding:16px;background:#ff6b35;color:#fff;
+  border:none;font-family:'Press Start 2P',monospace;font-size:clamp(11px,1vw,15px);
+  cursor:pointer;letter-spacing:2px;
+  box-shadow:4px 4px 0 #1a0533;transition:transform .1s,box-shadow .1s;
+}
+.btn-go:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #1a0533}
+.btn-go:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #1a0533}
+.btn-go:disabled{background:#ccc;cursor:not-allowed;box-shadow:none;transform:none}
+
+/* ══ ИГРА ══ */
+#gamePage{display:none;position:fixed;inset:0;z-index:20;background:#000}
+canvas{display:block;image-rendering:pixelated}
+
+/* HUD */
+#hud{
+  position:fixed;top:16px;left:0;right:0;
+  display:flex;justify-content:flex-end;padding:0 24px;
+  z-index:100;pointer-events:none;
+}
+.hud-box{
+  background:rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.3);
+  padding:8px 16px;text-align:right;
+}
+.hud-score{font-size:clamp(12px,1.1vw,18px);color:#fff;letter-spacing:2px}
+.hud-hint{font-size:clamp(8px,0.65vw,11px);color:#ffdd44;margin-top:4px}
+
+/* Оверлеи */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  align-items:center;justify-content:center;z-index:200;
+}
+.ov-card{
+  background:#1a0533;border:4px solid #ff6b35;
+  box-shadow:8px 8px 0 #ff6b35;
+  padding:clamp(24px,3vw,44px) clamp(22px,3vw,48px);text-align:center;max-width:680px;width:92%;
+}
+.ov-badge{
+  display:inline-block;background:#ff6b35;color:#fff;
+  font-size:clamp(8px,0.8vw,12px);padding:4px 14px;letter-spacing:2px;margin-bottom:16px;
+}
+.ov-card h2{font-size:clamp(20px,2vw,32px);color:#fff;margin-bottom:20px;line-height:1.7}
+.ov-card p{font-size:clamp(9px,0.85vw,13px);color:#ccc;line-height:2.4;margin-bottom:6px}
+.ov-info-box{
+  background:rgba(255,107,53,.15);border:2px solid #ff6b35;
+  padding:10px 14px;margin:12px 0 20px;
+}
+.ov-info-box p{font-size:clamp(8px,0.8vw,12px);color:#ffdd44;line-height:2.2;margin:0}
+.score-big{font-size:clamp(34px,4vw,64px);color:#ffdd44;margin:8px 0 4px;letter-spacing:3px}
+.score-lbl{font-size:clamp(8px,0.75vw,12px);color:#aaa;margin-bottom:20px}
+.event-box{
+  background:rgba(255,221,68,.12);border:2px solid #ffdd44;
+  padding:14px 16px;margin-bottom:24px;
+}
+.event-box p{font-size:clamp(9px,0.85vw,13px);color:#ffdd44;line-height:2;margin:0}
+.btn-action{
+  padding:14px 32px;background:#ff6b35;color:#fff;
+  border:none;font-family:'Press Start 2P',monospace;font-size:clamp(11px,1vw,15px);
+  cursor:pointer;box-shadow:4px 4px 0 #fff;transition:transform .1s;
+}
+.btn-action:hover{transform:translate(-2px,-2px)}
+.btn-secondary{margin-top:14px;background:#fff;color:#1a0533;box-shadow:4px 4px 0 #ff6b35}
+.attempts-note{font-family:Arial,sans-serif;font-size:14px;color:#fff;margin:12px 0 0;line-height:1.5}
+.form-logo{width:min(260px,70vw);height:auto;margin:0 auto 16px;display:block}
+.error-box{display:none;background:#ffe3e3;border:2px solid #d33;color:#1a0533;font-family:Arial,sans-serif;font-size:14px;line-height:1.5;padding:12px;margin-bottom:16px}
+@media(max-width:700px){
+  body{overflow:hidden}
+  #formPage{align-items:flex-start;padding:12px 0;overflow-y:auto}
+  .card{width:94vw;max-height:none;padding:22px 18px;box-shadow:4px 4px 0 #ff6b35}
+  .consent-legal{max-height:96px}
+  #hud{top:10px;padding:0 10px}
+  .hud-box{padding:7px 9px}
+  .ov-card{box-shadow:5px 5px 0 #ff6b35}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ ФОРМА ══════════ -->
+<div id="formPage">
+  <div class="stars" id="starsContainer"></div>
+  <div class="card">
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="badge">🎡 ВИРАЖ ПРЕДСТАВЛЯЕТ</div>
+      <h1 class="title">МОЛОДЕЖКА МАИ<br><span>БЕЗ СЕССИИ!</span></h1>
+      <div class="divider"></div>
+      <p class="subtitle">Зарегистрируйся и обгони препятствия!</p>
+    </div>
+
+    <form id="regForm" novalidate>
+      <div class="error-box" id="formError"></div>
+      <div class="field">
+        <label>👤 ФИО *</label>
+        <input type="text" id="fullname" placeholder="Иванов Иван Иванович" required autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label>🏛️ ИНСТИТУТ (НОМЕР) *</label>
+        <select id="institute" required>
+          <option value="">— Выберите институт —</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+          <option value="14">14</option>
+          <option value="Филиалы">Филиалы</option>
+        </select>
+      </div>
+
+      <div class="consent-wrap">
+        <div class="consent-legal">
+          Заполняя данную анкету, я даю свое согласие Управлению по молодежной политике МАИ на обработку и передачу данных организаторам мероприятий, в том числе автоматизированную, своих персональных данных в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных». Указанные мною в настоящей анкете персональные данные являются достоверными и предоставляются в целях осуществления уставной деятельности Организации, а также разработки и участия в мероприятиях, проектах, программах Организации некоммерческого характера, а также информирования об этих мероприятиях, программах и проектах. Также я понимаю, что участие в мероприятии является публичным и даю свое согласие на фото- и видеосъёмку в процессе реализации данного мероприятия и распространения этих материалов в открытых источниках. Согласие предоставляется с момента подписания и действительно в течение пяти лет. По истечению указанного срока действие согласия считается продлённым на каждые следующие пять лет при отсутствии письменного отзыва субъекта.
+        </div>
+        <label class="consent-check-row">
+          <input type="checkbox" id="consent" required>
+          <span>Даю согласие на работу с моими персональными данными</span>
+        </label>
+      </div>
+
+      <button type="submit" class="btn-go" id="submitBtn">🎢 ПОЕХАЛИ!</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════ ИГРА ══════════ -->
+<div id="gamePage">
+  <canvas id="gameCanvas"></canvas>
+  <div id="hud">
+    <div class="hud-box">
+      <div class="hud-score">HI <span id="hiDisplay">00000</span> &nbsp; <span id="scoreDisplay">00000</span></div>
+      <div class="hud-hint">ПРОБЕЛ / ТАП — ПРЫЖОК</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="startScreen">
+  <div class="ov-card">
+    <div class="ov-badge">🎡 ПРОФКОМ МАИ</div>
+    <h2>ГОРКИ МАИ!</h2>
+    <div class="ov-info-box">
+      <p>Прыгай через препятствия<br>Собирай звёзды МАИ (+50 очков)<br>У тебя есть 3 попытки<br>В таблицу уйдёт лучший результат</p>
+    </div>
+    <button class="btn-action" id="btnStart">▶ НАЧАТЬ!</button>
+  </div>
+</div>
+
+<div class="overlay" id="gameOverScreen">
+  <div class="ov-card">
+    <div class="ov-badge">🎢 РЕЗУЛЬТАТ</div>
+    <h2>ТЫ КРУТОЙ!</h2>
+    <div class="score-lbl">ТЫ НАБРАЛ</div>
+    <div class="score-big" id="finalScore">00000</div>
+    <div class="score-lbl">ОЧКОВ</div>
+    <div class="attempts-note" id="attemptsInfo"></div>
+    <button class="btn-action btn-secondary" id="btnRetry" type="button">ЕЩЁ ПОПЫТКА</button>
+    <div class="event-box">
+      <p>Ждём тебя <strong>26 июня в 17:00</strong><br>на главной площади МАИ!</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ CONFIG ══
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz_gWac-sCc_EBIplZqX2zSDS3G8uIV_QIAiyaoDg-bqZkDcr5Nb3-9NbewH7ah2DWCOQ/exec';
+const MAX_ATTEMPTS = 3;
+let currentUser = null;
+let currentUserKey = '';
+
+function normalizeName(raw){
+  return String(raw || '')
+    .toLowerCase()
+    .replace(/[ё]/g,'е')
+    .replace(/[0]/g,'о')
+    .replace(/[1]/g,'и')
+    .replace(/[3]/g,'з')
+    .replace(/[4]/g,'ч')
+    .replace(/[5]/g,'с')
+    .replace(/[6]/g,'б')
+    .replace(/[7]/g,'т')
+    .replace(/[8]/g,'в')
+    .replace(/[^а-яa-z\s]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function userStorageKey(normName){return 'mai_game_user_' + normName;}
+function getLocalUser(normName){
+  try{return JSON.parse(localStorage.getItem(userStorageKey(normName)) || 'null');}
+  catch(e){return null;}
+}
+function saveLocalUser(normName, data){
+  localStorage.setItem(userStorageKey(normName), JSON.stringify(data));
+}
+function showFormError(text){
+  const box=document.getElementById('formError');
+  box.textContent=text;
+  box.style.display=text?'block':'none';
+}
+function sendToSheets(payload){
+  if(!SHEETS_URL) return Promise.resolve();
+  return fetch(SHEETS_URL,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload)
+  }).catch(err=>console.warn(err));
+}
+
+// ══ ЗВЁЗДЫ ФОРМЫ ══
+(()=>{
+  const c=document.getElementById('starsContainer');
+  const st=document.createElement('style');
+  st.textContent='@keyframes bl{from{opacity:.1}to{opacity:.9}}';
+  document.head.appendChild(st);
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');s.className='star';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${Math.random()*.8+.2};animation:bl ${1+Math.random()*3}s infinite alternate`;
+    c.appendChild(s);
+  }
+})();
+
+// ══ ФОРМА ══
+document.getElementById('regForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  showFormError('');
+  const name=document.getElementById('fullname').value.trim();
+  const inst=document.getElementById('institute').value;
+  const ok=document.getElementById('consent').checked;
+  if(!name){showFormError('Введите ФИО');return}
+  if(!inst){showFormError('Выберите институт');return}
+  if(!ok){showFormError('Подтвердите согласие');return}
+
+  const norm=normalizeName(name);
+  if(!norm || norm.split(' ').length < 2){
+    showFormError('Введите ФИО полностью. Минимум фамилия и имя.');
+    return;
+  }
+
+  let saved=getLocalUser(norm);
+  if(saved && Number(saved.attempts || 0) >= MAX_ATTEMPTS){
+    showFormError('Это ФИО уже использовало 3 попытки. Повторная регистрация закрыта.');
+    return;
+  }
+
+  currentUserKey=norm;
+  currentUser=saved || {
+    fullname:name,
+    normalizedName:norm,
+    institute:inst,
+    consent:true,
+    attempts:0,
+    bestScore:0,
+    registeredAt:new Date().toLocaleString('ru-RU')
+  };
+  currentUser.fullname=name;
+  currentUser.institute=inst;
+  currentUser.consent=true;
+  saveLocalUser(norm,currentUser);
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.textContent='⏳ Загрузка...';
+
+  await sendToSheets({
+    action:'registration',
+    fullname:name,
+    normalizedName:norm,
+    institute:inst,
+    consent:true,
+    attempts:currentUser.attempts,
+    bestScore:currentUser.bestScore,
+    timestamp:new Date().toLocaleString('ru-RU')
+  });
+
+  document.getElementById('formPage').style.display='none';
+  document.getElementById('gamePage').style.display='block';
+  initGame();
+});
+
+// ══ CANVAS ══
+const canvas=document.getElementById('gameCanvas');
+const ctx=canvas.getContext('2d');
+var W,H,GROUND_Y, GAME_SCALE=1;
+
+function resize(){
+  W=canvas.width=window.innerWidth;
+  H=canvas.height=window.innerHeight;
+  GAME_SCALE=Math.max(0.75, Math.min(1.45, Math.min(W/1280, H/720) * 1.2));
+  GROUND_Y=Math.round(H*0.72);
+  if (typeof applyScale === "function") applyScale();
+}
+window.addEventListener('resize',resize);
+
+// ══ ИЗОБРАЖЕНИЯ ══
+const IMG={};
+['bg','player','crates','barrier','popcorn','logo'].forEach(k=>{
+  const i=new Image();
+  if(k==='bg') i.src='bg.jpg';
+  else if(k==='logo') i.src='logo.svg';
+  else i.src=k+'.png';
+  IMG[k]=i;
+});
+
+// ══ КОНСТАНТЫ (точно как у динозаврика Google) ══
+var DINO_X      = 80;       // фиксированная X персонажа
+var PW          = 88;       // ширина персонажа
+var PH          = 120;      // высота персонажа
+// Сдвиг вниз при отрисовке — компенсирует прозрачные поля в PNG
+var PLAYER_PAD  = 10;       // прозрачный отступ снизу у player.png
+var OBS_PAD     = 6;        // прозрачный отступ снизу у спрайтов препятствий
+
+var JUMP_VY     = -26;      // начальная вертикальная скорость прыжка
+var GRAV        = 1.5;      // гравитация за кадр
+var MIN_SPEED   = 6;        // начальная скорость (px/кадр при 60fps)
+var MAX_SPEED   = 18;
+const ACCEL       = 0.0008;   // ускорение (добавляется к скорости каждый кадр)
+
+const TARGET_FPS  = 60;
+const FRAME_MS    = 1000/TARGET_FPS;
+
+// Интервалы спауна (в px пройденного расстояния) — как у гугла
+var OBS_MIN_GAP = 600;
+var OBS_MAX_GAP = 1400;
+
+
+function applyScale(){
+  DINO_X = Math.round(80 * GAME_SCALE);
+  PW = Math.round(88 * GAME_SCALE);
+  PH = Math.round(120 * GAME_SCALE);
+  PLAYER_PAD = Math.round(10 * GAME_SCALE);
+  OBS_PAD = Math.round(6 * GAME_SCALE);
+  JUMP_VY = -26 * GAME_SCALE;
+  GRAV = 1.5 * GAME_SCALE;
+  MIN_SPEED = Math.max(5, 6 * GAME_SCALE);
+  MAX_SPEED = 18 * GAME_SCALE;
+  OBS_MIN_GAP = 600 * GAME_SCALE;
+  OBS_MAX_GAP = 1400 * GAME_SCALE;
+}
+
+// ══ СОСТОЯНИЕ ══
+var score=0, hiScore=0, gameRunning=false, rafId=0;
+var speed=MIN_SPEED, distRun=0;
+var player, obstacles, emblems, particles;
+var nextObsAt=0;   // дистанция до следующего препятствия
+var nextEmblAt=0;
+var lastTs=0;
+var frameAcc=0;    // накопленное время для фиксированного шага
+
+resize();
+
+// ══ ИНИТ ══
+function initGame(){
+  score=0;speed=MIN_SPEED;distRun=0;frameAcc=0;lastTs=0;
+  player={x:DINO_X, y:GROUND_Y-PH, vy:0, onGround:true};
+  obstacles=[];emblems=[];particles=[];
+  nextObsAt=OBS_MIN_GAP + Math.random()*(OBS_MAX_GAP-OBS_MIN_GAP);
+  nextEmblAt=800+Math.random()*1200;
+  setScoreDisplay(0);
+  document.getElementById('startScreen').style.display='flex';
+  document.getElementById('gameOverScreen').style.display='none';
+  render(0);
+}
+
+document.getElementById('btnStart').addEventListener('click',()=>{
+  document.getElementById('startScreen').style.display='none';
+  gameRunning=true;lastTs=0;
+  cancelAnimationFrame(rafId);
+  rafId=requestAnimationFrame(loop);
+});
+
+document.getElementById('btnRetry').addEventListener('click',()=>{
+  if(!currentUser || currentUser.attempts >= MAX_ATTEMPTS) return;
+  document.getElementById('gameOverScreen').style.display='none';
+  initGame();
+});
+
+// ══ УПРАВЛЕНИЕ ══
+function tryJump(){
+  if(!gameRunning) return;
+  if(player.onGround){
+    player.vy=JUMP_VY;
+    player.onGround=false;
+    burst(player.x+PW/2, GROUND_Y, 7,'#fff');
+  }
+}
+function tryDuck(on){ /* утка — не реализуем, оставим для простоты */ }
+
+canvas.addEventListener('click', tryJump);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();tryJump();},{passive:false});
+window.addEventListener('keydown',e=>{
+  if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();tryJump();}
+});
+
+// ══ ГЛАВНЫЙ ЦИКЛ — фиксированный шаг 60fps ══
+function loop(ts){
+  rafId=requestAnimationFrame(loop);
+  if(!gameRunning) return;
+  if(!lastTs) lastTs=ts;
+  let delta=ts-lastTs; lastTs=ts;
+  if(delta>100) delta=100; // защита от freeze
+  frameAcc+=delta;
+  while(frameAcc>=FRAME_MS){
+    frameAcc-=FRAME_MS;
+    stepPhysics();
+  }
+  render(frameAcc/FRAME_MS); // fractional для интерполяции (опционально)
+}
+
+// ══ ФИЗИКА — 1 кадр ══
+function stepPhysics(){
+  if(!gameRunning) return;
+
+  // Ускорение
+  speed=Math.min(MAX_SPEED, speed+ACCEL*speed);
+  distRun+=speed;
+
+  // Счёт как у гугла: +1 за каждые ~6px
+  score+=speed/6;
+  setScoreDisplay(Math.floor(score));
+
+  // Игрок
+  if(!player.onGround){
+    player.vy+=GRAV;
+    player.y+=player.vy;
+    if(player.y>=GROUND_Y-PH){
+      player.y=GROUND_Y-PH;
+      player.vy=0;
+      player.onGround=true;
+    }
+  }
+
+  // Спаун препятствий
+  if(distRun>=nextObsAt){
+    spawnObs();
+    nextObsAt=distRun+OBS_MIN_GAP+(Math.random()*(OBS_MAX_GAP-OBS_MIN_GAP))*(MIN_SPEED/speed*0.7+0.3);
+  }
+  if(distRun>=nextEmblAt){
+    emblems.push({x:W+40, y:GROUND_Y-PH-130, ang:0, collected:false});
+    nextEmblAt=distRun+1200+Math.random()*1800;
+  }
+
+  // Двигаем препятствия
+  for(let i=obstacles.length-1;i>=0;i--){
+    const o=obstacles[i];
+    o.x-=speed;
+    if(o.x+o.w<-20) {obstacles.splice(i,1);continue;}
+    // Коллизия
+    if(checkHit(player,PW,PH, o.x,GROUND_Y-o.h,o.w,o.h)){
+      endGame(); return;
+    }
+  }
+
+  // Эмблемы
+  for(let i=emblems.length-1;i>=0;i--){
+    const em=emblems[i];
+    em.x-=speed; em.ang+=0.05;
+    if(!em.collected&&checkHit(player,PW,PH,em.x,em.y,36,36)){
+      em.collected=true; score+=50; setScoreDisplay(Math.floor(score));
+      burst(em.x+18,em.y+18,14,'#FFD700');
+    }
+    if(em.x<-60) emblems.splice(i,1);
+  }
+
+  // Частицы
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx;p.y+=p.vy;p.vy+=0.4;p.life-=0.05;
+    if(p.life<=0) particles.splice(i,1);
+  }
+}
+
+function checkHit(pl,pw,ph,ox,oy,ow,oh){
+  const pad=12;
+  return (pl.x+pad < ox+ow-pad) &&
+         (pl.x+pw-pad > ox+pad) &&
+         (pl.y+pad < oy+oh-pad) &&
+         (pl.y+ph-pad > oy+pad);
+}
+
+// ══ СПАУН ПРЕПЯТСТВИЙ ══
+function spawnObs(){
+  const r=Math.random();
+  let type,w,h;
+  if(r<0.33){type='crates'; w=90*GAME_SCALE; h=100*GAME_SCALE;}
+  else if(r<0.66){type='barrier';w=130*GAME_SCALE;h=90*GAME_SCALE;}
+  else{type='popcorn';w=95*GAME_SCALE;h=115*GAME_SCALE;}
+  obstacles.push({x:W+10,type,w,h});
+}
+
+// ══ ЧАСТИЦЫ ══
+function burst(x,y,n,col){
+  for(let i=0;i<n;i++){
+    particles.push({x,y,vx:(Math.random()-.5)*9,vy:-Math.random()*6-1,life:1,col});
+  }
+}
+
+// ══ РЕНДЕР ══
+let bgScroll=0;
+function render(){
+  ctx.clearRect(0,0,W,H);
+  bgScroll-=speed*0.4;
+  if(bgScroll<=-W) bgScroll=0;
+
+  // Фон
+  const bg=IMG.bg;
+  if(bg.complete&&bg.naturalWidth>0){
+    ctx.drawImage(bg,bgScroll,0,W,H);
+    ctx.drawImage(bg,bgScroll+W,0,W,H);
+  } else {
+    ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,W,H);
+  }
+
+  // Затемнение низа для читаемости
+  const g=ctx.createLinearGradient(0,GROUND_Y-60,0,H);
+  g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.55)');
+  ctx.fillStyle=g;ctx.fillRect(0,GROUND_Y-60,W,H-GROUND_Y+60);
+
+  // ── Полосатый фартук под линией (красно-белый) ──
+  const stripeH = 18;
+  const apronH  = H - GROUND_Y;
+  const stripeCount = Math.ceil(W / stripeH) + 1;
+  for(let i=0; i<stripeCount; i++){
+    ctx.fillStyle = i%2===0 ? '#CC1111' : '#fff';
+    ctx.fillRect(i*stripeH, GROUND_Y+3, stripeH, apronH);
+  }
+
+  // ── Земля (линия) ──
+  ctx.fillStyle='rgba(255,255,255,0.95)';
+  ctx.fillRect(0,GROUND_Y,W,3);
+
+  // ── Эмблемы ──
+  emblems.forEach(em=>{if(!em.collected)drawEmblem(em.x,em.y,em.ang);});
+
+  // ── Препятствия ──
+  obstacles.forEach(o=>{
+    const img=IMG[o.type];
+    const oy=GROUND_Y-o.h+OBS_PAD;
+    if(img&&img.complete&&img.naturalWidth>0){
+      ctx.drawImage(img,o.x,oy,o.w,o.h);
+    } else {
+      ctx.fillStyle='#ff6b35';ctx.fillRect(o.x,oy,o.w,o.h);
+    }
+  });
+
+  // ── Персонаж ──
+  const pi=IMG.player;
+  const drawY=player.y+PLAYER_PAD;
+  if(pi&&pi.complete&&pi.naturalWidth>0){
+    ctx.drawImage(pi,player.x,drawY,PW,PH);
+  } else {
+    ctx.fillStyle='#ff4444';ctx.fillRect(player.x,drawY,PW,PH);
+  }
+
+  // ── Частицы ──
+  particles.forEach(p=>{
+    ctx.globalAlpha=Math.max(0,p.life);
+    ctx.fillStyle=p.col;
+    ctx.fillRect(p.x-3,p.y-3,6,6);
+  });
+  ctx.globalAlpha=1;
+
+  // ── Логотип (правый нижний угол) ──
+  const logo=IMG.logo;
+  if(logo&&logo.complete&&logo.naturalWidth>0){
+    const lh=36, lw=lh*(logo.naturalWidth/logo.naturalHeight);
+    ctx.drawImage(logo, W-lw-16, H-lh-16, lw, lh);
+  }
+}
+
+function drawEmblem(x,y,ang){
+  ctx.save();ctx.translate(x+18,y+18);ctx.rotate(ang);
+  const grd=ctx.createRadialGradient(0,0,0,0,0,26);
+  grd.addColorStop(0,'rgba(255,215,0,.55)');grd.addColorStop(1,'rgba(255,215,0,0)');
+  ctx.fillStyle=grd;ctx.beginPath();ctx.arc(0,0,26,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();
+  for(let i=0;i<10;i++){
+    const a=(i/10)*Math.PI*2-Math.PI/2,r=i%2===0?20:8;
+    i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+  }
+  ctx.closePath();ctx.fillStyle='#FFD700';ctx.fill();
+  ctx.strokeStyle='#AA7700';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='#1a0533';ctx.font='bold 6px "Press Start 2P"';
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('МАИ',0,0);
+  ctx.restore();
+}
+
+// ══ SCORE ══
+function fmt(n){return String(Math.min(n,99999)).padStart(5,'0');}
+function setScoreDisplay(n){
+  document.getElementById('scoreDisplay').textContent=fmt(n);
+  if(n>hiScore){hiScore=n;document.getElementById('hiDisplay').textContent=fmt(n);}
+}
+
+// ══ КОНЕЦ: 3 попытки, сохраняем лучший результат ══
+function endGame(){
+  gameRunning=false;
+  cancelAnimationFrame(rafId);
+  const s=Math.floor(score);
+
+  if(!currentUser){
+    currentUser={fullname:'',normalizedName:'',institute:'',attempts:0,bestScore:0};
+  }
+
+  currentUser.attempts = Number(currentUser.attempts || 0) + 1;
+  currentUser.bestScore = Math.max(Number(currentUser.bestScore || 0), s);
+  currentUser.lastScore = s;
+  currentUser.lastPlayedAt = new Date().toLocaleString('ru-RU');
+  saveLocalUser(currentUserKey, currentUser);
+
+  if(s>hiScore) hiScore=s;
+  document.getElementById('finalScore').textContent=fmt(s);
+  document.getElementById('hiDisplay').textContent=fmt(currentUser.bestScore);
+
+  const left = Math.max(0, MAX_ATTEMPTS - currentUser.attempts);
+  const info = document.getElementById('attemptsInfo');
+  const retry = document.getElementById('btnRetry');
+
+  if(left > 0){
+    info.textContent = 'Попытка ' + currentUser.attempts + ' из 3. Осталось: ' + left + '. Лучший результат: ' + fmt(currentUser.bestScore) + '.';
+    retry.style.display='inline-block';
+  } else {
+    info.textContent = 'Все 3 попытки использованы. В таблицу отправлен лучший результат: ' + fmt(currentUser.bestScore) + '. Повторная регистрация этого ФИО закрыта.';
+    retry.style.display='none';
+  }
+
+  sendToSheets({
+    action:'attempt',
+    fullname:currentUser.fullname,
+    normalizedName:currentUser.normalizedName,
+    institute:currentUser.institute,
+    consent:currentUser.consent,
+    attempt:currentUser.attempts,
+    score:s,
+    bestScore:currentUser.bestScore,
+    final:left===0,
+    timestamp:new Date().toLocaleString('ru-RU')
+  });
+
+  document.getElementById('gameOverScreen').style.display='flex';
+}
+
+</script>
+</body>
+</html>
