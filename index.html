@@ -452,7 +452,25 @@ function tryDuck(on){ /* утка — не реализуем, оставим д
 canvas.addEventListener('click', tryJump);
 canvas.addEventListener('touchstart',e=>{e.preventDefault();tryJump();},{passive:false});
 window.addEventListener('keydown',e=>{
-  if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();tryJump();}
+
+const tag=document.activeElement.tagName;
+
+if(
+tag==='INPUT'||
+tag==='TEXTAREA'||
+tag==='SELECT'
+){
+return;
+}
+
+if(
+e.code==='Space'||
+e.code==='ArrowUp'
+){
+e.preventDefault();
+tryJump();
+}
+
 });
 
 // ══ ГЛАВНЫЙ ЦИКЛ — фиксированный шаг 60fps ══
